@@ -23,9 +23,12 @@ public class Users {
 
     @NotBlank
     @Size(min = 3, max = 10)
-    private String userName;
+    private String username;
 
     @NotBlank
     @Size(min = 4, max = 15)
     private String password;
+
+    private String roles;
 }
+
