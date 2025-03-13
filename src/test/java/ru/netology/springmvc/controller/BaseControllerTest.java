@@ -25,7 +25,7 @@ public class BaseControllerTest {
 
     protected final Files fileEntity = Files.builder()
             .filecontent(file.getBytes())
-            .size(file.getSize())
+            .size((int)file.getSize())
             .filename(file.getName())
             .type(file.getContentType())
             .userid(userId1).build();

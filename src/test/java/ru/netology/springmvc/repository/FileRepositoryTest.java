@@ -26,7 +26,7 @@ class FileRepositoryTest {
 
         Files fileEntity = Files.builder()
                 .filecontent(file.getBytes())
-                .size(file.getSize())
+                .size((int)file.getSize())
                 .filename(file.getName())
                 .type(file.getContentType())
                 .userid(userId1).build();
@@ -49,7 +49,7 @@ class FileRepositoryTest {
 
         Files fileEntity = Files.builder()
                 .filecontent(file.getBytes())
-                .size(file.getSize())
+                .size((int)file.getSize())
                 .filename(file.getName())
                 .type(file.getContentType())
                 .userid(userId1).build();
@@ -66,7 +66,7 @@ class FileRepositoryTest {
 
         Files fileEntity = Files.builder()
                 .filecontent(file.getBytes())
-                .size(file.getSize())
+                .size((int)file.getSize())
                 .filename(file.getName())
                 .type(file.getContentType())
                 .userid(userId1).build();
@@ -88,7 +88,7 @@ class FileRepositoryTest {
 
         Files fileEntity = Files.builder()
                 .filecontent(file.getBytes())
-                .size(file.getSize())
+                .size((int)file.getSize())
                 .filename(file.getName())
                 .type(file.getContentType())
                 .userid(userId1).build();
