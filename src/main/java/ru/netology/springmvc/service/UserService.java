@@ -1,18 +1,14 @@
 package ru.netology.springmvc.service;
 
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import ru.netology.springmvc.entity.Role;
 import ru.netology.springmvc.entity.User;
-import ru.netology.springmvc.entity.Users;
 import ru.netology.springmvc.exception.InvalidCredentials;
 import ru.netology.springmvc.repository.UserRepository;
 
-import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -74,9 +70,8 @@ public class UserService {
      * @return текущий пользователь
      */
     public User getCurrentUser() {
-        // Получение имени пользователя из контекста Spring Security
-        var username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return getByUsername(username);
+        // Получение имени пользователя из контекста Spring
+        return getByUsername(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
 

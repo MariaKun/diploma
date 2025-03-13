@@ -41,7 +41,6 @@ public class AuthenticationService {
         return new JwtAuthenticationResponse(jwt);
     }
 
-
     /**
      * Аутентификация пользователя
      *
@@ -50,13 +49,13 @@ public class AuthenticationService {
      */
     public JwtAuthenticationResponse signIn(SignInRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                request.getUsername(),
+                request.getLogin(),
                 request.getPassword()
         ));
 
         var user = userService
                 .userDetailsService()
-                .loadUserByUsername(request.getUsername());
+                .loadUserByUsername(request.getLogin());
 
         var jwt = jwtService.generateToken(user);
         return new JwtAuthenticationResponse(jwt);

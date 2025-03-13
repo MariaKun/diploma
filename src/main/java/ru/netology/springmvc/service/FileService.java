@@ -35,7 +35,7 @@ public class FileService {
             }
             Files fileEntity = Files.builder()
                     .filecontent(file.getBytes())
-                    .size(file.getSize())
+                    .size((int) file.getSize())
                     .filename(filename)
                     .type(file.getContentType())
                     .userid(userid).build();
@@ -104,6 +104,7 @@ public class FileService {
         if (limit < 1)
             throw new ErrorInputData(String.format("Invalid limit %s", limit));
         try {
+
             List<FileDTO> files = fileRepository.findAllByUseridWithLimit(userid, limit)
                     .stream().map(x -> new FileDTO(x.getFilename(), x.getSize())).toList();
             log.info("Success get list for user {}", userid);

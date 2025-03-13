@@ -11,7 +11,7 @@ import java.util.Objects;
 @Setter
 public class FileDTO {
     private String filename;
-    private long size;
+    private int size;
 
     @Override
     public boolean equals(Object o) {
