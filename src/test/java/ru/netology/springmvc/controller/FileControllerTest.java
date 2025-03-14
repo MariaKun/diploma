@@ -2,10 +2,13 @@ package ru.netology.springmvc.controller;
 
 import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.netology.springmvc.exception.ErrorInputData;
 import ru.netology.springmvc.exception.FileNotFound;
@@ -15,9 +18,11 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(FileController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 class FileControllerTest extends BaseControllerTest {
 
     FileControllerTest() throws IOException {
@@ -25,47 +30,63 @@ class FileControllerTest extends BaseControllerTest {
 
     @Test
     void uploadFile() throws Exception {
-        when(service.upload(userId1, validFilename, file)).thenReturn(fileEntity);
+        RequestBuilder request =  multipart("/file")
+                .file("file", file.getBytes())
+                .param("filename", file.getName())
+                .header(headerName, token)
+                .contentType(MediaType.MULTIPART_FORM_DATA);
+        mockMvc.perform(request).andExpect(status().isOk());
+    }
+
+    @Test
+    void uploadFile_errorInputData() throws Exception {
+        when(service.upload(testUser.getId(), validFilename, null)).thenThrow(ErrorInputData.class);
+
         RequestBuilder request = MockMvcRequestBuilders
-                .multipart("/file")
-                .file(file)
-                .param("filename", validFilename);
-        mockMvc.perform(request);
-        verify(service, times(1)).upload(userId1, validFilename, file);
+                .post("/file")
+                .param("filename", validFilename)
+                .header(headerName, token);
+        mockMvc.perform(request).andExpect(status().isBadRequest());
+        verify(service, times(1)).upload(testUser.getId(), validFilename, null);
     }
 
     @Test
     void deleteFile() throws Exception {
         RequestBuilder request = MockMvcRequestBuilders
                 .delete("/file")
+                .header(headerName, token)
                 .param("filename", fileEntity.getFilename());
         this.mockMvc.perform(request).andExpect(status().isOk());
-        verify(service, times(1)).delete(userId1, fileEntity.getFilename());
+        verify(service, times(1)).delete(testUser.getId(), fileEntity.getFilename());
     }
 
     @Test
     void deleteFile_fileNotFound() throws Exception {
-        doThrow(FileNotFound.class).when(service).delete(userId1, fileEntity.getFilename());
+        doThrow(FileNotFound.class).when(service).delete(testUser.getId(), fileEntity.getFilename());
         RequestBuilder request = MockMvcRequestBuilders
                 .delete("/file")
+                .header(headerName, token)
                 .param("filename", fileEntity.getFilename());
         this.mockMvc.perform(request).andExpect(status().isNotFound());
+        verify(service, times(1)).delete(testUser.getId(), file.getName());
     }
 
     @Test
     void delete_invalidFileName() throws Exception {
-        doThrow(ErrorInputData.class).when(service).delete(userId1, invalidStr);
+        doThrow(ErrorInputData.class).when(service).delete(testUser.getId(), invalidStr);
         RequestBuilder request = MockMvcRequestBuilders
                 .delete("/file")
+                .header(headerName, token)
                 .param("filename", invalidStr);
         this.mockMvc.perform(request).andExpect(status().isBadRequest());
     }
 
     @Test
     void downloadFile() throws Exception {
-        when(service.download(userId1, fileEntity.getFilename())).thenReturn(fileEntity);
+        when(service.download(testUser.getId(), fileEntity.getFilename())).thenReturn(fileEntity);
         RequestBuilder request = MockMvcRequestBuilders
                 .get("/file")
+                .header(headerName, token)
                 .param("filename", fileEntity.getFilename());
         MvcResult mvcResult = this.mockMvc.perform(request).andExpect(status().isOk()).andReturn();
         byte[] contentAsByteArray = mvcResult.getResponse().getContentAsByteArray();
@@ -75,15 +96,16 @@ class FileControllerTest extends BaseControllerTest {
     @Test
     void editFileName() throws Exception {
         FileNameEditRequest fileNameEditRequest = new FileNameEditRequest(validFilename);
-        doNothing().when(service).editFileName(userId1, validFilename, fileNameEditRequest);
+        doNothing().when(service).editFileName(testUser.getId(), validFilename, fileNameEditRequest);
 
         String json = new Gson().toJson(fileNameEditRequest, FileNameEditRequest.class);
         RequestBuilder request = MockMvcRequestBuilders
                 .put("/file")
+                .header(headerName, token)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
                 .param("filename", fileEntity.getFilename());
         this.mockMvc.perform(request).andExpect(status().isOk());
-        verify(service, times(1)).editFileName(userId1, validFilename, fileNameEditRequest);
+        verify(service, times(1)).editFileName(testUser.getId(), validFilename, fileNameEditRequest);
     }
 }

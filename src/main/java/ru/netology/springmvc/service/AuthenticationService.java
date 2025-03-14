@@ -47,15 +47,13 @@ public class AuthenticationService {
      * @param request данные пользователя
      * @return токен
      */
-    public JwtAuthenticationResponse signIn(SignInRequest request) {
+    public JwtAuthenticationResponse login(SignInRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.getLogin(),
                 request.getPassword()
         ));
 
-        var user = userService
-                .userDetailsService()
-                .loadUserByUsername(request.getLogin());
+        var user = userService.loadUserByUsername(request.getLogin());
 
         var jwt = jwtService.generateToken(user);
         return new JwtAuthenticationResponse(jwt);

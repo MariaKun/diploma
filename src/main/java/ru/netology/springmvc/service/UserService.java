@@ -2,23 +2,24 @@ package ru.netology.springmvc.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import ru.netology.springmvc.entity.User;
 import ru.netology.springmvc.exception.InvalidCredentials;
+import ru.netology.springmvc.exception.UnauthorizedUser;
 import ru.netology.springmvc.repository.UserRepository;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
     private final UserRepository repository;
 
     public User create(User user) {
-        if (repository.existsByUsername(user.getUsername())) {
+        if (repository.existsByEmail(user.getEmail())) {
             throw new InvalidCredentials("User already exists");
         }
-
-        if (repository.existsByEmail(user.getEmail())) {
+        if (repository.existsByUsername(user.getUsername())) {
             throw new InvalidCredentials("User already exists");
         }
         return repository.save(user);
@@ -29,8 +30,10 @@ public class UserService {
                 .orElseThrow(() -> new InvalidCredentials("User not found"));
     }
 
-    public UserDetailsService userDetailsService() {
-        return this::getByUsername;
+    @Override
+    public UserDetails loadUserByUsername(String login) {
+        return repository.findByUsername(login)
+                .orElseThrow(() -> new InvalidCredentials("User not found"));
     }
 
     public User getCurrentUser() {
