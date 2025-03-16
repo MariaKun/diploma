@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class JwtAuthenticationResponse {
     @JsonProperty("auth-token")
     private String token;

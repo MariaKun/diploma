@@ -3,12 +3,13 @@ package ru.netology.springmvc.service;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-import ru.netology.springmvc.entity.Files;
+import ru.netology.springmvc.entity.File;
 import ru.netology.springmvc.exception.ErrorInputData;
 import ru.netology.springmvc.exception.FileNotFound;
 import ru.netology.springmvc.model.FileDTO;
@@ -22,30 +23,25 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
+import static ru.netology.springmvc.TestData.*;
 
 @ExtendWith(MockitoExtension.class)
 class FileServiceTest {
 
     @InjectMocks
     FileService fileService;
+
     @Mock
     FileRepository fileRepository;
 
-    private final String validFilename = "file";
+    private final MockMultipartFile file = randomFile();
 
-    private final MockMultipartFile file = new MockMultipartFile(
-            validFilename, "test.txt", "text/plain", "text".getBytes());
-
-    private final long userId1 = 1L;
-
-    private final Files fileEntity = Files.builder()
+    private final File fileEntity = File.builder()
             .filecontent(file.getBytes())
-            .size((int)file.getSize())
+            .size((int) file.getSize())
             .filename(file.getName())
             .type(file.getContentType())
-            .userid(userId1).build();
-
-    private final String invalidStr = "";
+            .userid(testUserId).build();
 
     FileServiceTest() throws IOException {
     }
@@ -54,89 +50,114 @@ class FileServiceTest {
     void upload() {
         when(fileRepository.save(fileEntity)).thenReturn(fileEntity);
 
-        Files upload = fileService.upload(userId1, file.getName(), file);
+        File upload = fileService.upload(testUserId, file.getName(), file);
         assertEquals(fileEntity, upload);
+        verify(fileRepository, times(1)).save(fileEntity);
     }
 
-    @Test
-    void upload_invalidFileName() {
-        assertThrows(ErrorInputData.class, () -> fileService.upload(userId1, invalidStr, file));
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"  ", "\t", "\n"})
+    void upload_emptyFileName(String filename) {
+        assertThrows(ErrorInputData.class, () -> fileService.upload(testUserId, filename, file));
     }
 
     @Test
     void upload_fileExist() {
-        when(fileRepository.findByUseridAndFilename(userId1, validFilename)).thenReturn(fileEntity);
-        assertThrows(ErrorInputData.class, () -> fileService.upload(userId1, validFilename, file));
+        when(fileRepository.findByUseridAndFilename(testUserId, file.getName())).thenReturn(fileEntity);
+
+        assertThrows(ErrorInputData.class, () -> fileService.upload(testUserId, file.getName(), file));
+        verify(fileRepository, times(1)).findByUseridAndFilename(testUserId, file.getName());
     }
 
     @Test
     void delete() {
-        when(fileRepository.findByUseridAndFilename(userId1, fileEntity.getFilename())).thenReturn(fileEntity);
-        doNothing().when(fileRepository).removeByUseridAndFilename(userId1, fileEntity.getFilename());
+        when(fileRepository.findByUseridAndFilename(testUserId, fileEntity.getFilename())).thenReturn(fileEntity);
+        doNothing().when(fileRepository).removeByUseridAndFilename(testUserId, fileEntity.getFilename());
 
-        fileService.delete(userId1, fileEntity.getFilename());
+        fileService.delete(testUserId, fileEntity.getFilename());
+        verify(fileRepository, times(1)).removeByUseridAndFilename(testUserId, fileEntity.getFilename());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"  ", "\t", "\n"})
+    void delete_emptyFileName(String filename) {
+        assertThrows(ErrorInputData.class, () -> fileService.delete(testUserId, filename));
     }
 
     @Test
     void delete_fileNotFound() {
-        assertThrows(FileNotFound.class, () -> fileService.delete(userId1, validFilename));
-    }
-
-    @Test
-    void delete_invalidFileName() {
-        assertThrows(ErrorInputData.class, () -> fileService.delete(userId1, invalidStr));
+        assertThrows(FileNotFound.class, () -> fileService.delete(testUserId, file.getName()));
     }
 
     @Test
     void editFileName() {
-        String newName = "newName";
-        when(fileRepository.findByUseridAndFilename(userId1, fileEntity.getFilename())).thenReturn(fileEntity);
-        doNothing().when(fileRepository).updateFileNameByUserId(userId1, fileEntity.getFilename(), newName);
-        fileService.editFileName(userId1, fileEntity.getFilename(), new FileNameEditRequest(newName));
-        verify(fileRepository, times(1)).updateFileNameByUserId(userId1, fileEntity.getFilename(), newName);
+        String newName = randomFileName();
+        when(fileRepository.findByUseridAndFilename(testUserId, fileEntity.getFilename())).thenReturn(fileEntity);
+        doNothing().when(fileRepository).updateFileNameByUserId(testUserId, fileEntity.getFilename(), newName);
+
+        fileService.editFileName(testUserId, fileEntity.getFilename(), new FileNameEditRequest(newName));
+        verify(fileRepository, times(1)).updateFileNameByUserId(testUserId, fileEntity.getFilename(), newName);
     }
 
-    @Test
-    void editFileName_invalidFileName() {
-        assertThrows(ErrorInputData.class, () -> fileService.editFileName(userId1, invalidStr, new FileNameEditRequest(validFilename)));
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"  ", "\t", "\n"})
+    void editFileName_emptyFileName(String filename) {
+        assertThrows(ErrorInputData.class, () -> fileService.editFileName(testUserId, filename, new FileNameEditRequest(file.getName())));
     }
 
-    @Test
-    void editFileName_invalidNewFileName() {
-        assertThrows(ErrorInputData.class, () -> fileService.editFileName(userId1, validFilename, new FileNameEditRequest(invalidStr)));
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"  ", "\t", "\n"})
+    void editFileName_emptyNewFileName(String filename) {
+        assertThrows(ErrorInputData.class, () -> fileService.editFileName(testUserId, file.getName(), new FileNameEditRequest(filename)));
     }
 
     @Test
     void editFileName_fileNotFound() {
-        assertThrows(FileNotFound.class, () -> fileService.editFileName(userId1, validFilename, new FileNameEditRequest(validFilename)));
+        assertThrows(FileNotFound.class, () -> fileService.editFileName(testUserId, file.getName(), new FileNameEditRequest(file.getName())));
     }
 
     @Test
     void download() {
-        when(fileRepository.findByUseridAndFilename(userId1, fileEntity.getFilename())).thenReturn(fileEntity);
+        when(fileRepository.findByUseridAndFilename(testUserId, fileEntity.getFilename())).thenReturn(fileEntity);
 
-        Files download = fileService.download(userId1, fileEntity.getFilename());
+        File download = fileService.download(testUserId, fileEntity.getFilename());
         assertEquals(fileEntity, download);
+        verify(fileRepository, times(1)).findByUseridAndFilename(testUserId, fileEntity.getFilename());
     }
 
     @Test
     void download_fileNotFound() {
-        assertThrows(FileNotFound.class, () -> fileService.download(userId1, validFilename));
+        when(fileRepository.findByUseridAndFilename(testUserId, file.getName())).thenReturn(null);
+
+        assertThrows(FileNotFound.class, () -> fileService.download(testUserId, file.getName()));
+        verify(fileRepository, times(1)).findByUseridAndFilename(testUserId, file.getName());
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"  ", "\t", "\n"})
+    void download_emptyFileName(String filename) {
+        assertThrows(ErrorInputData.class, () -> fileService.download(testUserId, filename));
     }
 
     @Test
     void getAllFiles() {
-        List<Files> files = new ArrayList<>();
+        List<File> files = new ArrayList<>();
         files.add(fileEntity);
-        when(fileRepository.findAllByUseridWithLimit(userId1, 100)).thenReturn(files);
+        when(fileRepository.findAllByUseridWithLimit(testUserId, 100)).thenReturn(files);
 
-        List<FileDTO> allFiles = fileService.getAllFiles(userId1, 100);
+        List<FileDTO> allFiles = fileService.getAllFiles(testUserId, 100);
         assertEquals(files.size(), allFiles.size());
+        verify(fileRepository, times(1)).findAllByUseridWithLimit(testUserId, 100);
     }
 
     @ParameterizedTest
     @ValueSource(ints = {-1, 0})
     void getAllFiles_invalidLimit(int param) {
-        assertThrows(ErrorInputData.class, () -> fileService.getAllFiles(userId1, param));
+        assertThrows(ErrorInputData.class, () -> fileService.getAllFiles(testUserId, param));
     }
 }

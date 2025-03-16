@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import ru.netology.springmvc.entity.Files;
+import ru.netology.springmvc.entity.File;
 import ru.netology.springmvc.exception.*;
 import ru.netology.springmvc.model.FileDTO;
 import ru.netology.springmvc.model.FileNameEditRequest;
@@ -22,7 +22,7 @@ public class FileService {
     private final FileRepository fileRepository;
 
     @Transactional
-    public Files upload(long userid, String filename, MultipartFile file) {
+    public File upload(long userid, String filename, MultipartFile file) {
         if (isInvalid(filename)) {
             throw new ErrorInputData(String.format("Invalid filename %s", filename));
         }
@@ -33,13 +33,13 @@ public class FileService {
             if (fileRepository.findByUseridAndFilename(userid, filename) != null) {
                 throw new ErrorInputData(String.format("File already exist %s", filename));
             }
-            Files fileEntity = Files.builder()
+            File fileEntity = File.builder()
                     .filecontent(file.getBytes())
                     .size((int) file.getSize())
                     .filename(filename)
                     .type(file.getContentType())
                     .userid(userid).build();
-            Files save = fileRepository.save(fileEntity);
+            File save = fileRepository.save(fileEntity);
             log.info("File {} success uploaded for user {}", filename, userid);
             return save;
         } catch (IOException ex) {
@@ -86,17 +86,21 @@ public class FileService {
     }
 
     @Transactional
-    public Files download(long userid, String filename) {
-        if (fileRepository.findByUseridAndFilename(userid, filename) == null) {
-            throw new FileNotFound(String.format("File %s not found", filename));
+    public File download(long userid, String filename) {
+        if (isInvalid(filename)) {
+            throw new ErrorInputData(String.format("Invalid filename %s", filename));
         }
+        File files;
         try {
-            Files files = fileRepository.findByUseridAndFilename(userid, filename);
-            log.info("File {} success downloaded", filename);
-            return files;
+            files = fileRepository.findByUseridAndFilename(userid, filename);
         } catch (Exception ex) {
             throw new ErrorDownloadFile(String.format("Error download file %s : %s", filename, ex.getMessage()));
         }
+        if (files == null) {
+            throw new FileNotFound(String.format("File %s not found", filename));
+        }
+        log.info("File {} success downloaded", filename);
+        return files;
     }
 
     @Transactional
@@ -115,6 +119,6 @@ public class FileService {
     }
 
     private boolean isInvalid(String str) {
-        return str.isEmpty();
+        return str == null || str.isBlank();
     }
 }

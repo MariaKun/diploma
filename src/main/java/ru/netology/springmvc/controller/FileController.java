@@ -7,7 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import ru.netology.springmvc.entity.Files;
+import ru.netology.springmvc.entity.File;
 import ru.netology.springmvc.model.FileNameEditRequest;
 import ru.netology.springmvc.service.FileService;
 import ru.netology.springmvc.service.UserService;
@@ -23,21 +23,20 @@ public class FileController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<?> uploadFile(@RequestParam("filename") String filename, MultipartFile file) throws IOException {
+    public ResponseEntity<?> uploadFile(@RequestParam(value = "filename") String filename, MultipartFile file) throws IOException {
         fileService.upload(userService.getCurrentUser().getId(), filename, file);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @DeleteMapping
     public ResponseEntity<?> deleteFile(@RequestParam("filename") String filename) {
-
         fileService.delete(userService.getCurrentUser().getId(), filename);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @GetMapping
     public ResponseEntity<byte[]> downloadFile(@RequestParam("filename") String filename) {
-        Files file = fileService.download(userService.getCurrentUser().getId(), filename);
+        File file = fileService.download(userService.getCurrentUser().getId(), filename);
         return ResponseEntity.ok().contentType(MediaType.parseMediaType(file.getType()))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
                 .body(file.getFilecontent());

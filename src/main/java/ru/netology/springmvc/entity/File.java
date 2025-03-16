@@ -1,6 +1,8 @@
 package ru.netology.springmvc.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,23 +16,22 @@ import java.util.Objects;
 @Entity
 @Builder
 @Getter
-public class Files {
-
+@Table(name = "files")
+public class File {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false)
+    @NotBlank
     private String filename;
 
-    @Column(nullable = false)
     private int size;
 
-    @Column(nullable = false)
+    @NotBlank
     private String type;
 
     @Lob
-    @Column(nullable = false)
+    @NotNull
     private byte[] filecontent;
 
     private long userid;
@@ -39,7 +40,7 @@ public class Files {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Files files = (Files) o;
+        File files = (File) o;
         return id == files.id && size == files.size && userid == files.userid && Objects.equals(filename, files.filename) && Objects.equals(type, files.type) && Objects.deepEquals(filecontent, files.filecontent);
     }
 

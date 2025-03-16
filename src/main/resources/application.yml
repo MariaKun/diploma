@@ -2,9 +2,9 @@ server:
   port: 8080
 spring:
 
-  sql:
-    init:
-      mode: always
+  # sql:
+  #   init:
+  #     mode: always
   # Database
   datasource:
     driver-class-name: org.postgresql.Driver

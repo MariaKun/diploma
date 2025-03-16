@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import ru.netology.springmvc.entity.User;
 import ru.netology.springmvc.exception.InvalidCredentials;
-import ru.netology.springmvc.exception.UnauthorizedUser;
+import ru.netology.springmvc.exception.UserNotFound;
 import ru.netology.springmvc.repository.UserRepository;
 
 @Service
@@ -27,13 +27,13 @@ public class UserService implements UserDetailsService {
 
     public User getByUsername(String username) {
         return repository.findByUsername(username)
-                .orElseThrow(() -> new InvalidCredentials("User not found"));
+                .orElseThrow(() -> new UserNotFound("User not found"));
     }
 
     @Override
     public UserDetails loadUserByUsername(String login) {
         return repository.findByUsername(login)
-                .orElseThrow(() -> new InvalidCredentials("User not found"));
+                .orElseThrow(() -> new UserNotFound("User not found"));
     }
 
     public User getCurrentUser() {

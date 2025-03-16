@@ -1,10 +1,12 @@
 package ru.netology.springmvc.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -17,21 +19,19 @@ import java.util.List;
 @Table(name = "users")
 public class User implements UserDetails {
     @Id
-    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "username", unique = true, nullable = false)
+    @NotBlank
     private String username;
 
-    @Column(name = "password", nullable = false)
+    @NotBlank
     private String password;
 
-    @Column(name = "email", unique = true, nullable = false)
+    @NotBlank
     private String email;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
     private Role role;
 
     @Override

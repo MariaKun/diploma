@@ -56,4 +56,10 @@ public class ExceptionHandlerAdvice {
     public String handleFileNotFound(FileNotFound ex) {
         return ex.getMessage();
     }
+
+    @ResponseStatus(value = HttpStatus.NOT_FOUND)
+    @ExceptionHandler(UserNotFound.class)
+    public String handleFileNotFound(UserNotFound ex) {
+        return ex.getMessage();
+    }
 }
