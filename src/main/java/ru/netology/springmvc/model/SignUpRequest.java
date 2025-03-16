@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 
 public class SignUpRequest {
 
-    @NotBlank(message = "Имя пользователя не может быть пустыми")
+    @NotBlank
     private String username;
 
-    @NotBlank(message = "Адрес электронной почты не может быть пустыми")
+    @NotBlank
     private String email;
 
     @NotBlank

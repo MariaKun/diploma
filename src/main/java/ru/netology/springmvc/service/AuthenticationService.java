@@ -1,6 +1,7 @@
 package ru.netology.springmvc.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +13,7 @@ import ru.netology.springmvc.model.JwtAuthenticationResponse;
 import ru.netology.springmvc.model.SignInRequest;
 import ru.netology.springmvc.model.SignUpRequest;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -38,6 +40,7 @@ public class AuthenticationService {
         userService.create(user);
 
         var jwt = jwtService.generateToken(user);
+        log.info("Signup user {}", user.getUsername());
         return new JwtAuthenticationResponse(jwt);
     }
 
@@ -56,6 +59,7 @@ public class AuthenticationService {
         var user = userService.loadUserByUsername(request.getLogin());
 
         var jwt = jwtService.generateToken(user);
+        log.info("Login user {}", user.getUsername());
         return new JwtAuthenticationResponse(jwt);
     }
 }

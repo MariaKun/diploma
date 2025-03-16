@@ -1,6 +1,7 @@
 package ru.netology.springmvc.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,6 +11,7 @@ import ru.netology.springmvc.exception.InvalidCredentials;
 import ru.netology.springmvc.exception.UserNotFound;
 import ru.netology.springmvc.repository.UserRepository;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
@@ -22,6 +24,7 @@ public class UserService implements UserDetailsService {
         if (repository.existsByUsername(user.getUsername())) {
             throw new InvalidCredentials("User already exists");
         }
+        log.info("User created {}", user.getUsername());
         return repository.save(user);
     }
 
